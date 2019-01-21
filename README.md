@@ -1,4 +1,6 @@
-this is MVP
+# journal2 - command line admin journal
+
+MVP
 
 command line notes collector.
 
