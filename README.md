@@ -3,6 +3,10 @@ this is MVP
 command line notes collector.
 
 ```
+mkdir ~/gh
+cd ~/gh
+git clone https://github.com/blinkinglight/go-journal2
+cd go-journal2
 ./build.sh
 ```
 
