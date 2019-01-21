@@ -57,13 +57,13 @@ func getUserRecords(user string, limit int) []JournalRecord {
 		c := tx.Bucket([]byte("index")).Cursor()
 		jrb := tx.Bucket([]byte("records"))
 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			num++
 			if num >= limit {
 				return nil
 			}
 			var jr JournalRecord
 			jr.Decode(jrb.Get(v))
 			records = append(records, jr)
+			num++
 		}
 		return nil
 	})
@@ -76,13 +76,14 @@ func getRecords(limit int) []JournalRecord {
 	db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("records")).Cursor()
 		for k, v := c.Last(); k != nil; k, v = c.Prev() {
-			num++
+
 			if num >= limit {
 				return nil
 			}
 			var jr JournalRecord
 			jr.Decode(v)
 			records = append(records, jr)
+			num++
 		}
 		return nil
 	})

@@ -86,6 +86,7 @@ func main() {
 		content := r.URL.Query().Get("content")
 		if name == "" || content == "" {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		createRecord(name, content)
 		w.Write([]byte("OK"))
