@@ -29,7 +29,7 @@ func main() {
 	_url := cfg.Section("").Key("url").String()
 
 	if *flagQ != "" {
-		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=%s", _url, *flagQ), nil)
+		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=%s", _url, url.QueryEscape(*flagQ)), nil)
 		response, err := client.Do(searchRequest)
 		if err != nil {
 			panic(err)
