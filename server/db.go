@@ -21,6 +21,15 @@ func initDB() {
 		if err != nil {
 			panic(err)
 		}
+		db.View(func(tx *bolt.Tx) error {
+			c := tx.Bucket([]byte("records")).Cursor()
+			for _, v := c.First(); v != nil; _, v = c.Next() {
+				var jr JournalRecord
+				jr.Decode(v)
+				idx.Index(string(jr.Id()), jr)
+			}
+			return nil
+		})
 		idx.Close()
 	}
 }

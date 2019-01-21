@@ -33,7 +33,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
 		defer response.Body.Close()
+
 		var jrs []JournalRecord
 		json.NewDecoder(response.Body).Decode(&jrs)
 		for _, jr := range jrs {
