@@ -15,6 +15,7 @@ import (
 
 var (
 	flagQ = flag.String("q", "", "-q query string")
+	flagN = flag.Int("n", -1, "-n 10 // shows last 10 records")
 )
 
 func main() {
@@ -29,6 +30,24 @@ func main() {
 
 	if *flagQ != "" {
 		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=%s", _url, *flagQ), nil)
+		response, err := client.Do(searchRequest)
+		if err != nil {
+			panic(err)
+		}
+
+		defer response.Body.Close()
+
+		var jrs []JournalRecord
+		json.NewDecoder(response.Body).Decode(&jrs)
+		for _, jr := range jrs {
+			ts := time.Unix(0, jr.ID)
+			fmt.Printf("%s %s %s\n", ts.Format(time.Stamp), jr.Name, jr.Content)
+		}
+		os.Exit(0)
+	}
+
+	if *flagN != -1 {
+		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/latest?n=%d", _url, *flagN), nil)
 		response, err := client.Do(searchRequest)
 		if err != nil {
 			panic(err)

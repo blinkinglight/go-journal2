@@ -112,6 +112,19 @@ func main() {
 		json.NewEncoder(w).Encode(jrs)
 	}))
 
+	http.HandleFunc("/latest", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+		_limit := r.URL.Query().Get("n")
+		limit, err := strconv.Atoi(_limit)
+		if err != nil {
+			limit = 10
+		}
+
+		recs := getRecords(limit)
+
+		json.NewEncoder(w).Encode(recs)
+
+	}))
+
 	http.ListenAndServe(cfg.Section("").Key("bind").String(), nil)
 }
 
