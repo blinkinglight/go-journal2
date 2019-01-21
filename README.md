@@ -8,6 +8,12 @@ command line notes collector.
 
 note - journal client
 
+usage:
+```
+~/bin/note this is long long "text :)"
+~/bin/note -q thi*
+```
+
 jrnl_server - journal server
 
 ```
@@ -20,6 +26,7 @@ edit /etc/journal2srv.ini
 ```
 bind = ip:port // :port
 db = /path/were/db/lives.db
+indexdb = /path/to/index.db
 
 [users]
 user = password 
