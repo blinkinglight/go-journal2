@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"github.com/blevesearch/bleve"
 	"github.com/boltdb/bolt"
+	"os"
 )
 
 func initDB() {
@@ -11,6 +13,16 @@ func initDB() {
 		tx.CreateBucketIfNotExists([]byte("records"))
 		return nil
 	})
+
+	_, err := os.Stat(indexdb)
+	if err != nil {
+		mapping := bleve.NewIndexMapping()
+		idx, err := bleve.New(indexdb, mapping)
+		if err != nil {
+			panic(err)
+		}
+		idx.Close()
+	}
 }
 
 func createRecord(name, content string) {
@@ -18,7 +30,13 @@ func createRecord(name, content string) {
 		jr := NewJR(name, content)
 		tx.Bucket([]byte("records")).Put(jr.Id(), jr.Encode())
 		tx.Bucket([]byte("index")).Put(jr.Index(), jr.Id())
-		return nil
+
+		idx, err := bleve.Open(indexdb)
+		defer idx.Close()
+		if err != nil {
+			panic(err)
+		}
+		return idx.Index(string(jr.Id()), jr)
 	})
 }
 

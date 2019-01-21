@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/boltdb/bolt"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/blevesearch/bleve"
 	"gopkg.in/ini.v1"
 
 	"server/ba"
@@ -19,7 +21,8 @@ var (
 )
 
 var (
-	db *bolt.DB
+	db      *bolt.DB
+	indexdb string
 )
 
 func main() {
@@ -35,6 +38,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	indexdb = cfg.Section("").Key("indexdb").String()
 
 	initDB()
 
@@ -82,6 +87,29 @@ func main() {
 		}
 		createRecord(name, content)
 		w.Write([]byte("OK"))
+	}))
+
+	http.HandleFunc("/query", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query().Get("q")
+		index, _ := bleve.Open(indexdb)
+		query := bleve.NewQueryStringQuery(q)
+		searchRequest := bleve.NewSearchRequest(query)
+		searchResult, _ := index.Search(searchRequest)
+		defer index.Close()
+		// fmt.Println(searchResult)
+		var jrs []JournalRecord
+		db.View(func(tx *bolt.Tx) error {
+			for _, v := range searchResult.Hits {
+				var jr JournalRecord
+				// fmt.Printf("%#v %#v\n", k, v.ID)
+				b := tx.Bucket([]byte("records"))
+				jr.Decode(b.Get([]byte(v.ID)))
+				jrs = append(jrs, jr)
+			}
+			return nil
+		})
+		// fmt.Printf("%#v\n", searchResult)
+		json.NewEncoder(w).Encode(jrs)
 	}))
 
 	http.ListenAndServe(cfg.Section("").Key("bind").String(), nil)
