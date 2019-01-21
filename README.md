@@ -24,7 +24,7 @@ http://journal2serveraddr:port/?query=CaseSensitivePrefixToFilter&limit=10000
 edit /etc/journal2srv.ini 
 
 ```
-bind = ip:port // :port
+bind = ip:port
 db = /path/were/db/lives.db
 indexdb = /path/to/index.db
 
