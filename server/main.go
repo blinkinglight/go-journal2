@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/blevesearch/bleve"
@@ -52,7 +53,9 @@ func main() {
 		return false
 	}
 
-	http.HandleFunc("/", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		_limit := r.URL.Query().Get("limit")
 		limit, err := strconv.Atoi(_limit)
@@ -81,7 +84,7 @@ func main() {
 		}
 	}))
 
-	http.HandleFunc("/post", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/post", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Query().Get("name")
 		content := r.URL.Query().Get("content")
 		if name == "" || content == "" {
@@ -92,7 +95,7 @@ func main() {
 		w.Write([]byte("OK"))
 	}))
 
-	http.HandleFunc("/query", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/query", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		index, _ := bleve.Open(indexdb)
 		if q == "today" {
@@ -131,7 +134,7 @@ func main() {
 		json.NewEncoder(w).Encode(jrs)
 	}))
 
-	http.HandleFunc("/latest", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/latest", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
 		_limit := r.URL.Query().Get("n")
 		limit, err := strconv.Atoi(_limit)
 		if err != nil {
@@ -144,7 +147,20 @@ func main() {
 
 	}))
 
-	log.Fatal(http.ListenAndServe(cfg.Section("").Key("bind").String(), nil))
+	log.Fatal(http.ListenAndServe(cfg.Section("").Key("bind").String(), logger(mux)))
+}
+
+func logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		client := ClientIp(r)
+		if client.XForIP != "" {
+			log.Printf(`[%s](%s) %s %s`, client.IP, client.XForIP, r.URL.String(), r.Method)
+		} else {
+			log.Printf(`[%s] %s %s`, client.IP, r.URL.String(), r.Method)
+
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func itob(v int) []byte {
@@ -160,4 +176,24 @@ func Day(t time.Time, d int) time.Time {
 
 func TruncateDate(t time.Time) time.Time {
 	return t.Truncate(24 * time.Hour)
+}
+
+type Addr struct {
+	IP     string
+	XForIP string
+}
+
+func ClientIp(r *http.Request) (ip *Addr) {
+	ip = new(Addr)
+	remoteAddr := r.RemoteAddr
+	idx := strings.LastIndex(remoteAddr, ":")
+	if idx != -1 {
+		remoteAddr = remoteAddr[0:idx]
+		if remoteAddr[0] == '[' && remoteAddr[len(remoteAddr)-1] == ']' {
+			remoteAddr = remoteAddr[1 : len(remoteAddr)-1]
+		}
+	}
+	ip.IP = remoteAddr
+	ip.XForIP = r.Header.Get("X-Forwarded-For")
+	return
 }
