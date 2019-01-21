@@ -95,8 +95,24 @@ func main() {
 	http.HandleFunc("/query", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		index, _ := bleve.Open(indexdb)
+		if q == "today" {
+			_end := Day(time.Now(), 1)
+			_start := TruncateDate(_end)
+			q = fmt.Sprintf("+ID:>%d +ID:<%d", _start.UnixNano(), _end.UnixNano())
+		}
+		if q == "yesterday" {
+			_end := Day(time.Now(), 0)
+			_start := TruncateDate(_end)
+			q = fmt.Sprintf("+ID:>%d +ID:<%d", _start.UnixNano(), _end.UnixNano())
+		}
 		query := bleve.NewQueryStringQuery(q)
 		searchRequest := bleve.NewSearchRequest(query)
+		if q == "today" || q == "yesterday" {
+			searchRequest.SortBy([]string{"-ID"})
+		} else {
+			searchRequest.SortBy([]string{"ID"})
+		}
+		searchRequest.Size = 1000
 		searchResult, _ := index.Search(searchRequest)
 		defer index.Close()
 		// fmt.Println(searchResult)
@@ -135,4 +151,13 @@ func itob(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b
+}
+
+func Day(t time.Time, d int) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day+d, 0, 0, 0, 0, t.Location())
+}
+
+func TruncateDate(t time.Time) time.Time {
+	return t.Truncate(24 * time.Hour)
 }
