@@ -85,8 +85,8 @@ func main() {
 	}))
 
 	mux.HandleFunc("/post", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Query().Get("name")
-		content := r.URL.Query().Get("content")
+		name := r.FormValue("name")
+		content := r.FormValue("content")
 		if name == "" || content == "" {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

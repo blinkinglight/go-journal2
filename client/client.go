@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"net/url"
+	neturl "net/url"
 	"os"
 	"os/user"
 	"strings"
@@ -31,7 +31,7 @@ func main() {
 	_url := cfg.Section("").Key("url").String()
 
 	if *flagQ != "" {
-		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=%s", _url, url.QueryEscape(*flagQ)), nil)
+		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=%s", _url, neturl.QueryEscape(*flagQ)), nil)
 		response, err := client.Do(searchRequest)
 		if err != nil {
 			panic(err)
@@ -69,14 +69,13 @@ func main() {
 	name := cfg.Section("").Key("name").String()
 	content := strings.Join(os.Args[1:], " ")
 
-	url := fmt.Sprintf(
-		"%s/post?name=%s&content=%s",
-		_url,
-		url.QueryEscape(name), url.QueryEscape(content),
-	)
-	request, _ := http.NewRequest("POST", url, nil)
+	url := fmt.Sprintf("%s/post", _url)
 
-	r, e := client.Do(request)
+	r, e := http.PostForm(url, neturl.Values{
+		"name":    {name},
+		"content": {content},
+	})
+
 	if e != nil {
 		panic(e)
 	}
