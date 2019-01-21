@@ -3,7 +3,7 @@
 command=/opt/jrnl_server --config=/etc/journal2srv.ini
 autostart = true
 startsec = 1
-user = root
+user = nobody
 redirect_stderr = true
 stdout_logfile_maxbytes = 200MB
 stdout_logfile_backups = 10

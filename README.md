@@ -16,6 +16,7 @@ usage:
 ```
 ~/bin/note this is long long "text :)"
 ~/bin/note -q thi*
+~/bin/note -n 10
 ```
 
 jrnl_server - journal server
