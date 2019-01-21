@@ -30,6 +30,13 @@ func main() {
 	client := &http.Client{}
 	_url := cfg.Section("").Key("url").String()
 
+	name := cfg.Section("").Key("name").String()
+	content := strings.Join(os.Args[1:], " ")
+
+	if content == "" {
+		*flagQ = "today"
+	}
+
 	if *flagQ != "" {
 		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=%s", _url, neturl.QueryEscape(*flagQ)), nil)
 		response, err := client.Do(searchRequest)
@@ -65,9 +72,6 @@ func main() {
 		}
 		os.Exit(0)
 	}
-
-	name := cfg.Section("").Key("name").String()
-	content := strings.Join(os.Args[1:], " ")
 
 	url := fmt.Sprintf("%s/post", _url)
 
