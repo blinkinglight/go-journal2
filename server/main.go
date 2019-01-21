@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/boltdb/bolt"
+	"html"
 	"net/http"
 	"strconv"
 	"time"
@@ -75,7 +76,7 @@ func main() {
 				day = ts.Hour()
 				fmt.Fprintf(w, "<h2>%d-%02d-%02d %02d:00</h2>\n", ts.Year(), ts.Month(), ts.Day(), ts.Hour())
 			}
-			fmt.Fprintf(w, "%02d:%02d - <strong>%s</strong> - %s<br/>\n", ts.Hour(), ts.Minute(), rec.Name, rec.Content)
+			fmt.Fprintf(w, "%02d:%02d - <strong>%s</strong> - %s<br/>\n", ts.Hour(), ts.Minute(), html.EscapeString(rec.Name), html.EscapeString(rec.Content))
 		}
 	}))
 
