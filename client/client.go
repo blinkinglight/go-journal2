@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/user"
 	"strings"
 	"time"
 
@@ -20,7 +21,8 @@ var (
 
 func main() {
 	flag.Parse()
-	cfg, err := ini.Load("/etc/journal2cli.ini")
+
+	cfg, err := ini.Load(userConfig())
 	if err != nil {
 		panic(err)
 	}
@@ -86,4 +88,13 @@ type JournalRecord struct {
 	ID      int64
 	Name    string
 	Content string
+}
+
+func userConfig() string {
+	home, _ := user.Current()
+	_, err := os.Stat(home.HomeDir + "/.journal2cli.ini")
+	if err != nil {
+		return "/etc/journal2cli.ini"
+	}
+	return home.HomeDir + "/.journal2cli.ini"
 }
