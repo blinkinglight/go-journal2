@@ -1,0 +1,4 @@
+.DS*
+*.db
+jrnl_server
+note
