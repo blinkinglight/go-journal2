@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"html"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -126,7 +127,7 @@ func main() {
 
 	}))
 
-	http.ListenAndServe(cfg.Section("").Key("bind").String(), nil)
+	log.Fatal(http.ListenAndServe(cfg.Section("").Key("bind").String(), nil))
 }
 
 func itob(v int) []byte {
