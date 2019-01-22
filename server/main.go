@@ -91,7 +91,7 @@ func main() {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		createRecord(name, content)
+		createRecord(-1, name, content)
 		w.Write([]byte("OK"))
 	}))
 
@@ -145,6 +145,12 @@ func main() {
 
 		json.NewEncoder(w).Encode(recs)
 
+	}))
+
+	mux.HandleFunc("/raw", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+		var jr JournalRecord
+		json.NewDecoder(r.Body).Decode(&jr)
+		createRecord(jr.ID, jr.Name, jr.Content)
 	}))
 
 	log.Fatal(http.ListenAndServe(cfg.Section("").Key("bind").String(), logger(mux)))

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -12,11 +14,18 @@ import (
 	"time"
 
 	"gopkg.in/ini.v1"
+
+	"github.com/boltdb/bolt"
 )
 
 var (
 	flagQ = flag.String("q", "", "-q query string")
 	flagN = flag.Int("n", -1, "-n 10 // shows last 10 records")
+	flagS = flag.Bool("sync", false, "-sync")
+)
+
+var (
+	db *bolt.DB
 )
 
 func main() {
@@ -26,6 +35,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	db, err = bolt.Open(journalDir()+"/que.db", 0755, nil)
+	if err != nil {
+		panic(err)
+	}
+	qInit()
 
 	client := &http.Client{}
 	_url := cfg.Section("").Key("url").String()
@@ -73,24 +88,63 @@ func main() {
 		os.Exit(0)
 	}
 
-	url := fmt.Sprintf("%s/post", _url)
-
-	r, e := http.PostForm(url, neturl.Values{
-		"name":    {name},
-		"content": {content},
-	})
-
-	if e != nil {
-		panic(e)
+	if *flagS {
+		for jr := qPeek(); jr.ID != 0; jr = qPeek() {
+			_url := fmt.Sprintf("%s/raw", _url)
+			rdr := bytes.NewReader(jr.Encode())
+			rsp, err := http.Post(_url, "application/json", rdr)
+			if err != nil {
+				fmt.Printf("Error. Sync failed.\n")
+				break
+			}
+			if rsp.StatusCode >= 200 && rsp.StatusCode <= 299 {
+				qDelete(jr.ID)
+			}
+			rsp.Body.Close()
+		}
+		fmt.Println("Sync done.")
+		os.Exit(0)
 	}
-	defer r.Body.Close()
-	println(r.StatusCode)
+
+	jr := JournalRecord{
+		ID:      time.Now().UnixNano(),
+		Name:    name,
+		Content: content,
+	}
+
+	qAdd(jr)
+	fmt.Println("Message added to local queue")
+
+	var lastError error
+	for jr := qPeek(); jr.ID != 0; jr = qPeek() {
+		_url := fmt.Sprintf("%s/raw", _url)
+		rdr := bytes.NewReader(jr.Encode())
+		rsp, err := http.Post(_url, "application/json", rdr)
+		if err != nil {
+			lastError = err
+			break
+		}
+		if rsp.StatusCode >= 200 && rsp.StatusCode <= 299 {
+			qDelete(jr.ID)
+		}
+		rsp.Body.Close()
+	}
+	if lastError != nil {
+		fmt.Printf("Something went wrong. run '%s -sync' manually\n", os.Args[0])
+	} else {
+		fmt.Println("Sync done")
+	}
 }
 
 type JournalRecord struct {
 	ID      int64
 	Name    string
 	Content string
+}
+
+func (jr *JournalRecord) Encode() []byte {
+	b, _ := json.Marshal(jr)
+	return b
 }
 
 func userConfig() string {
@@ -100,4 +154,51 @@ func userConfig() string {
 		return "/etc/journal2cli.ini"
 	}
 	return home.HomeDir + "/.journal2cli.ini"
+}
+
+func journalDir() string {
+	dir, _ := user.Current()
+	jrnldir := dir.HomeDir + "/.journal2"
+	if fi, err := os.Stat(jrnldir); err != nil || !fi.IsDir() {
+		os.MkdirAll(jrnldir, 0755)
+	}
+	return jrnldir
+}
+
+func qInit() {
+	db.Update(func(tx *bolt.Tx) error {
+		tx.CreateBucketIfNotExists([]byte("que"))
+		return nil
+	})
+}
+
+func qAdd(jr JournalRecord) {
+	db.Update(func(tx *bolt.Tx) error {
+		tx.Bucket([]byte("que")).Put(itob(int(jr.ID)), jr.Encode())
+		return nil
+	})
+}
+
+func qPeek() JournalRecord {
+	var jr JournalRecord
+	db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("que")).Cursor()
+		_, v := c.First()
+		json.Unmarshal(v, &jr)
+		return nil
+	})
+	return jr
+}
+
+func qDelete(id int64) {
+	db.Update(func(tx *bolt.Tx) error {
+		tx.Bucket([]byte("que")).Delete(itob(int(id)))
+		return nil
+	})
+}
+
+func itob(v int) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
 }

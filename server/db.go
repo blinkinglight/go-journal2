@@ -34,9 +34,12 @@ func initDB() {
 	}
 }
 
-func createRecord(name, content string) {
+func createRecord(id int64, name, content string) {
 	db.Update(func(tx *bolt.Tx) error {
 		jr := NewJR(name, content)
+		if id != -1 {
+			jr.ID = id
+		}
 		tx.Bucket([]byte("records")).Put(jr.Id(), jr.Encode())
 		tx.Bucket([]byte("index")).Put(jr.Index(), jr.Id())
 
