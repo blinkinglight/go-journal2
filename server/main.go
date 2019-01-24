@@ -80,7 +80,7 @@ func main() {
 		}
 		day := -1
 		for _, rec := range recs {
-			ts := time.Unix(0, rec.ID)
+			ts := time.Unix(0, rec.ID).UTC()
 			if day != ts.Hour() {
 				day = ts.Hour()
 				fmt.Fprintf(w, "<h2>%d-%02d-%02d %02d:00</h2>\n", ts.Year(), ts.Month(), ts.Day(), ts.Hour())

@@ -7,7 +7,7 @@ import (
 
 func NewJR(name, content string) *JournalRecord {
 	jr := &JournalRecord{
-		ID:      time.Now().UnixNano(),
+		ID:      time.Now().UTC().UnixNano(),
 		Name:    name,
 		Content: content,
 	}
