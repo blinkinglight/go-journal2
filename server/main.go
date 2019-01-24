@@ -32,7 +32,10 @@ func main() {
 
 	flag.Parse()
 
-	cfg, err := ini.Load(*flagConfig)
+	// cfg, err := ini.Load(*flagConfig)
+	cfg, err := ini.LoadSources(ini.LoadOptions{
+		KeyValueDelimiters: "=",
+	}, *flagConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -46,16 +49,18 @@ func main() {
 
 	initDB()
 
-	ba.AuthFunc = func(user, password string) bool {
-		if cfg.Section("users").Haskey(user) {
-			return cfg.Section("users").Key(user).String() == password
+	ba.AuthFunc = func(perm, user, password string) bool {
+		pair := user + ":" + password
+		if cfg.Section("users").Haskey(pair) {
+			perms := cfg.Section("users").Key(pair).In("", []string{"r", "w", "rw"})
+			return strings.Contains(perms, perm)
 		}
 		return false
 	}
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", ba.HandlerFuncCB("r", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		_limit := r.URL.Query().Get("limit")
 		limit, err := strconv.Atoi(_limit)
@@ -84,7 +89,7 @@ func main() {
 		}
 	}))
 
-	mux.HandleFunc("/post", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/post", ba.HandlerFuncCB("w", func(w http.ResponseWriter, r *http.Request) {
 		name := r.FormValue("name")
 		content := r.FormValue("content")
 		if name == "" || content == "" {
@@ -95,7 +100,7 @@ func main() {
 		w.Write([]byte("OK"))
 	}))
 
-	mux.HandleFunc("/query", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/query", ba.HandlerFuncCB("r", func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		index, _ := bleve.Open(indexdb)
 		if q == "today" {
@@ -134,7 +139,7 @@ func main() {
 		json.NewEncoder(w).Encode(jrs)
 	}))
 
-	mux.HandleFunc("/latest", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/latest", ba.HandlerFuncCB("r", func(w http.ResponseWriter, r *http.Request) {
 		_limit := r.URL.Query().Get("n")
 		limit, err := strconv.Atoi(_limit)
 		if err != nil {
@@ -147,7 +152,7 @@ func main() {
 
 	}))
 
-	mux.HandleFunc("/raw", ba.HandlerFuncCB(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/raw", ba.HandlerFuncCB("w", func(w http.ResponseWriter, r *http.Request) {
 		var jr JournalRecord
 		json.NewDecoder(r.Body).Decode(&jr)
 		createRecord(jr.ID, jr.Name, jr.Content)

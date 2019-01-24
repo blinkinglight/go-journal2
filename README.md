@@ -31,19 +31,19 @@ http://journal2serveraddr:port/?query=CaseSensitivePrefixToFilter&limit=10000
 edit /etc/journal2srv.ini 
 
 ```
-bind = ip:port
+bind = localhost:18888
 db = /path/were/db/lives.db
 indexdb = /path/to/index.db
 
 [users]
-user = password 
-user1 = password1
-user2 = password2
+user:password = r
+user1:password1 = w
+user2:password2 = rw
 ```
 
 edit /etc/journal2cli.ini
 
 ```
 name = Your[nick]Name
-url = http://youusername:yourpassword@journal2serveraddress:port
+url = http://user2:password2@localhost:18888
 ```

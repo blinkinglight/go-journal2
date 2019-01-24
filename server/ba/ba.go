@@ -16,14 +16,14 @@ func SetUserPassword(user, pass string) {
 }
 
 var (
-	AuthFunc func(string, string) bool
+	AuthFunc func(string, string, string) bool
 )
 
-func cb(u, p string) bool {
+func cb(perms, u, p string) bool {
 	if AuthFunc == nil {
 		return false
 	}
-	return AuthFunc(u, p)
+	return AuthFunc(perms, u, p)
 }
 
 func HandlerFunc(next http.HandlerFunc) http.HandlerFunc {
@@ -39,10 +39,10 @@ func HandlerFunc(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func HandlerFuncCB(next http.HandlerFunc) http.HandlerFunc {
+func HandlerFuncCB(perms string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
-		if !cb(user, pass) || !ok {
+		if !cb(perms, user, pass) || !ok {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Please login"`)
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized.\n"))

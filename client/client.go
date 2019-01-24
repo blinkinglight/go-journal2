@@ -16,11 +16,13 @@ import (
 	"gopkg.in/ini.v1"
 
 	"github.com/boltdb/bolt"
+	"github.com/pkg/errors"
 )
 
 var (
 	flagQ = flag.String("q", "", "-q query string")
 	flagN = flag.Int("n", -1, "-n 10 // shows last 10 records")
+	flagM = flag.Bool("m", false, "-m")
 	flagS = flag.Bool("sync", false, "-sync")
 )
 
@@ -49,7 +51,25 @@ func main() {
 	content := strings.Join(os.Args[1:], " ")
 
 	if content == "" {
-		*flagQ = "today"
+		*flagM = true
+	}
+
+	if *flagM {
+		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/query?q=Name:%s", _url, neturl.QueryEscape(name)), nil)
+		response, err := client.Do(searchRequest)
+		if err != nil {
+			panic(err)
+		}
+
+		defer response.Body.Close()
+
+		var jrs []JournalRecord
+		json.NewDecoder(response.Body).Decode(&jrs)
+		for _, jr := range jrs {
+			ts := time.Unix(0, jr.ID)
+			fmt.Printf("%s %s %s\n", ts.Format(time.Stamp), jr.Name, jr.Content)
+		}
+		os.Exit(0)
 	}
 
 	if *flagQ != "" {
@@ -97,10 +117,14 @@ func main() {
 				fmt.Printf("Error. Sync failed.\n")
 				break
 			}
+			rsp.Body.Close()
 			if rsp.StatusCode >= 200 && rsp.StatusCode <= 299 {
 				qDelete(jr.ID)
 			}
-			rsp.Body.Close()
+			if rsp.StatusCode == 401 {
+				fmt.Println("Unauthorized")
+				break
+			}
 		}
 		fmt.Println("Sync done.")
 		os.Exit(0)
@@ -124,10 +148,15 @@ func main() {
 			lastError = err
 			break
 		}
+		rsp.Body.Close()
 		if rsp.StatusCode >= 200 && rsp.StatusCode <= 299 {
 			qDelete(jr.ID)
 		}
-		rsp.Body.Close()
+		if rsp.StatusCode == 401 {
+			lastError = errors.New("Unauthorized")
+			fmt.Println("Unauthorized")
+			break
+		}
 	}
 	if lastError != nil {
 		fmt.Printf("Something went wrong. run '%s -sync' manually\n", os.Args[0])
