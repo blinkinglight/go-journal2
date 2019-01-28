@@ -24,6 +24,7 @@ var (
 	flagN = flag.Int("n", -1, "-n 10 // shows last 10 records")
 	flagM = flag.Bool("m", false, "-m")
 	flagS = flag.Bool("sync", false, "-sync")
+	flagD = flag.String("d", "", "-d 2019-01-01")
 )
 
 var (
@@ -52,6 +53,24 @@ func main() {
 
 	if content == "" {
 		*flagM = true
+	}
+
+	if *flagD != "" {
+		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/date?d=%s", _url, neturl.QueryEscape(*flagD)), nil)
+		response, err := client.Do(searchRequest)
+		if err != nil {
+			panic(err)
+		}
+
+		defer response.Body.Close()
+
+		var jrs []JournalRecord
+		json.NewDecoder(response.Body).Decode(&jrs)
+		for _, jr := range jrs {
+			ts := time.Unix(0, jr.ID)
+			fmt.Printf("%s %s %s\n", ts.Format(time.Stamp), jr.Name, jr.Content)
+		}
+		os.Exit(0)
 	}
 
 	if *flagM {
