@@ -79,13 +79,20 @@ func main() {
 			recs = getUserRecords(query, limit)
 		}
 		day := -1
+		tpl0 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toLocaleDateString('en-GB', {day: 'numeric', month: 'numeric', year: 'numeric'}).replace(/\//g, '-'));</script>` + "\n"
+		tpl1 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toLocaleDateString('en-GB', {hour: 'numeric', minute: 'numeric'}).split(" ")[1]);</script>` + "\n"
+		// tpl1 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toISOString().slice(0,19).split("T")[1]);</script>` + "\n"
+		fmt.Fprintln(w, "<html>")
+		fmt.Fprintln(w, "<body>")
 		for _, rec := range recs {
 			ts := time.Unix(0, rec.ID).UTC()
 			if day != ts.Hour() {
 				day = ts.Hour()
-				fmt.Fprintf(w, "<h2>%d-%02d-%02d %02d:00</h2>\n", ts.Year(), ts.Month(), ts.Day(), ts.Hour())
+				// fmt.Fprintf(w, "<h2>%d-%02d-%02d %02d:00</h2>\n", ts.Year(), ts.Month(), ts.Day(), ts.Hour())
+				fmt.Fprintf(w, `<h2>%s</h2>`, fmt.Sprintf(tpl0, ts.Year(), ts.Month(), ts.Day(), ts.Hour(), ts.Minute(), ts.Second()))
 			}
-			fmt.Fprintf(w, "%02d:%02d - <strong>%s</strong> - %s<br/>\n", ts.Hour(), ts.Minute(), html.EscapeString(rec.Name), html.EscapeString(rec.Content))
+			_time := fmt.Sprintf(tpl1, ts.Year(), ts.Month(), ts.Day(), ts.Hour(), ts.Minute(), ts.Second())
+			fmt.Fprintf(w, "%s - <strong>%s</strong> - %s<br/>\n", _time, html.EscapeString(rec.Name), html.EscapeString(rec.Content))
 		}
 	}))
 
@@ -158,6 +165,7 @@ func main() {
 		createRecord(jr.ID, jr.Name, jr.Content)
 	}))
 
+	println("Starting server...")
 	log.Fatal(http.ListenAndServe(cfg.Section("").Key("bind").String(), logger(mux)))
 }
 

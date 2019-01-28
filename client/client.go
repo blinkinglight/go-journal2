@@ -66,7 +66,7 @@ func main() {
 		var jrs []JournalRecord
 		json.NewDecoder(response.Body).Decode(&jrs)
 		for _, jr := range jrs {
-			ts := time.Unix(0, jr.ID).UTC()
+			ts := time.Unix(0, jr.ID)
 			fmt.Printf("%s %s %s\n", ts.Format(time.Stamp), jr.Name, jr.Content)
 		}
 		os.Exit(0)
@@ -84,7 +84,7 @@ func main() {
 		var jrs []JournalRecord
 		json.NewDecoder(response.Body).Decode(&jrs)
 		for _, jr := range jrs {
-			ts := time.Unix(0, jr.ID).UTC()
+			ts := time.Unix(0, jr.ID)
 			fmt.Printf("%s %s %s\n", ts.Format(time.Stamp), jr.Name, jr.Content)
 		}
 		os.Exit(0)
@@ -102,7 +102,7 @@ func main() {
 		var jrs []JournalRecord
 		json.NewDecoder(response.Body).Decode(&jrs)
 		for _, jr := range jrs {
-			ts := time.Unix(0, jr.ID).UTC()
+			ts := time.Unix(0, jr.ID)
 			fmt.Printf("%s %s %s\n", ts.Format(time.Stamp), jr.Name, jr.Content)
 		}
 		os.Exit(0)
