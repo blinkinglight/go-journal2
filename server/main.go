@@ -160,40 +160,9 @@ func main() {
 	}))
 
 	mux.HandleFunc("/date", ba.HandlerFuncCB("r", func(w http.ResponseWriter, r *http.Request) {
-		_limit := r.URL.Query().Get("n")
 		date := r.URL.Query().Get("d")
-		limit, err := strconv.Atoi(_limit)
-		if err != nil {
-			limit = 1000
-		}
 
-		parsedDate, _ := time.Parse("2006-01-02", date)
-
-		_start := parsedDate.UnixNano()
-		_end := parsedDate.UnixNano() + 24*time.Hour.Nanoseconds()
-
-		q := fmt.Sprintf("+ID:>%d +ID:<%d", _start, _end)
-
-		index, _ := bleve.Open(indexdb)
-		query := bleve.NewQueryStringQuery(q)
-		searchRequest := bleve.NewSearchRequest(query)
-		searchRequest.SortBy([]string{"ID"})
-
-		searchRequest.Size = limit
-		searchResult, _ := index.Search(searchRequest)
-		defer index.Close()
-
-		var jrs []JournalRecord
-		db.View(func(tx *bolt.Tx) error {
-			for _, v := range searchResult.Hits {
-				var jr JournalRecord
-				// fmt.Printf("%#v %#v\n", k, v.ID)
-				b := tx.Bucket([]byte("records"))
-				jr.Decode(b.Get([]byte(v.ID)))
-				jrs = append(jrs, jr)
-			}
-			return nil
-		})
+		jrs := getByDate(date)
 
 		json.NewEncoder(w).Encode(jrs)
 	}))
@@ -203,7 +172,7 @@ func main() {
 		json.NewDecoder(r.Body).Decode(&jr)
 		createRecord(jr.ID, jr.Name, jr.Content)
 	}))
-
+	go startSlackBot()
 	println("Starting server...")
 	log.Fatal(http.ListenAndServe(cfg.Section("").Key("bind").String(), logger(mux)))
 }

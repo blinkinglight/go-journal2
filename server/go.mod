@@ -12,11 +12,16 @@ require (
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
 	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
+	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
+	github.com/lusis/slack-test v0.0.0-20180109053238-3c758769bfa6 // indirect
+	github.com/nlopes/slack v0.5.0
 	github.com/philhofer/fwd v1.0.0 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/smartystreets/assertions v0.0.0-20190116191733-b6c0e53d7304 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20181108003508-044398e4856c // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
+	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/willf/bitset v1.1.9 // indirect
 	golang.org/x/net v0.0.0-20190119204137-ed066c81e75e // indirect
