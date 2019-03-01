@@ -45,7 +45,9 @@ func main() {
 	}
 	qInit()
 
-	client := &http.Client{}
+	http.DefaultClient.Timeout = 3 * time.Second
+
+	client := &http.Client{Timeout: 3 * time.Second}
 	_url := cfg.Section("").Key("url").String()
 
 	name := cfg.Section("").Key("name").String()
