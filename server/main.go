@@ -80,7 +80,7 @@ func main() {
 		}
 		day := -1
 		tpl0 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toLocaleDateString('en-GB', {day: 'numeric', month: 'numeric', year: 'numeric', hour: 'numeric'}).replace(/\//g, '-')+":00");</script>` + "\n"
-		tpl1 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toLocaleDateString('en-GB', {hour: 'numeric', minute: 'numeric'}).split(" ")[1]);</script>` + "\n"
+		tpl1 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toLocaleDateString('en-GB', {hour: 'numeric', minute: 'numeric', second:'numeric'}).split(" ")[1]);</script>` + "\n"
 		// tpl1 := `<script>document.write((new Date(Date.UTC(%d,%d,%d,%d,%d,%d))).toISOString().slice(0,19).split("T")[1]);</script>` + "\n"
 		fmt.Fprintln(w, "<html>")
 		fmt.Fprintln(w, "<body>")
