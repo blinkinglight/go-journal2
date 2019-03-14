@@ -89,9 +89,10 @@ func main() {
 			if day != ts.Hour() {
 				day = ts.Hour()
 				// fmt.Fprintf(w, "<h2>%d-%02d-%02d %02d:00</h2>\n", ts.Year(), ts.Month(), ts.Day(), ts.Hour())
-				fmt.Fprintf(w, `<h2>%s</h2>`, fmt.Sprintf(tpl0, ts.Year(), ts.Month(), ts.Day(), ts.Hour(), ts.Minute(), ts.Second()))
+				
+				fmt.Fprintf(w, `<h2>%s</h2>`, fmt.Sprintf(tpl0, ts.Year(), int(ts.Month())-1, ts.Day(), ts.Hour(), ts.Minute(), ts.Second()))
 			}
-			_time := fmt.Sprintf(tpl1, ts.Year(), ts.Month(), ts.Day(), ts.Hour(), ts.Minute(), ts.Second())
+			_time := fmt.Sprintf(tpl1, ts.Year(), int(ts.Month())-1, ts.Day(), ts.Hour(), ts.Minute(), ts.Second())
 			fmt.Fprintf(w, "%s - <strong>%s</strong> - %s<br/>\n", _time, html.EscapeString(rec.Name), html.EscapeString(rec.Content))
 		}
 	}))
