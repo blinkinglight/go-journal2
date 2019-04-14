@@ -20,6 +20,7 @@ usage:
 ~/bin/note this is long long "text :)"
 ~/bin/note -q thi*
 ~/bin/note -n 10
+~/bin/note -d 2019-03-03 [-l 2]
 ```
 
 jrnl_server - journal server. if SLACK_TOKEN env var is set, starts slack bot.
