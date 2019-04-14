@@ -25,6 +25,7 @@ var (
 	flagM = flag.Bool("m", false, "-m")
 	flagS = flag.Bool("sync", false, "-sync")
 	flagD = flag.String("d", "", "-d 2019-01-01")
+	flagL = flag.Int("l", 1, "-l 1")
 )
 
 var (
@@ -58,7 +59,7 @@ func main() {
 	}
 
 	if *flagD != "" {
-		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/date?d=%s", _url, neturl.QueryEscape(*flagD)), nil)
+		searchRequest, _ := http.NewRequest("GET", fmt.Sprintf("%s/date?d=%s&limit=%d", _url, neturl.QueryEscape(*flagD), *flagL), nil)
 		response, err := client.Do(searchRequest)
 		if err != nil {
 			panic(err)

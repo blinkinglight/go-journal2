@@ -72,7 +72,7 @@ func slackGetLast(_limit string) slack.Attachment {
 }
 
 func slackGetByDate(date string) slack.Attachment {
-	jrs := getByDate(date)
+	jrs := getByDate(date, 1)
 	text := ""
 	for _, jr := range jrs {
 		text += fmt.Sprintf("%s %s %s\n", time.Unix(0, jr.ID).UTC().Format("2006-01-02 15:04"), jr.Name, jr.Content)
@@ -82,7 +82,7 @@ func slackGetByDate(date string) slack.Attachment {
 
 func slackGetToday() slack.Attachment {
 	dt := time.Now().UTC().Format("2006-01-02")
-	jrs := getByDate(dt)
+	jrs := getByDate(dt, 1)
 	text := ""
 	for _, jr := range jrs {
 		text += fmt.Sprintf("%s %s %s\n", time.Unix(0, jr.ID).UTC().Format("2006-01-02 15:04"), jr.Name, jr.Content)
@@ -92,7 +92,7 @@ func slackGetToday() slack.Attachment {
 
 func slackGetYesterday() slack.Attachment {
 	dt := Day(time.Now().UTC(), -1).UTC().Format("2006-01-02")
-	jrs := getByDate(dt)
+	jrs := getByDate(dt, 1)
 	text := ""
 	for _, jr := range jrs {
 		text += fmt.Sprintf("%s %s %s\n", time.Unix(0, jr.ID).UTC().Format("2006-01-02 15:04"), jr.Name, jr.Content)

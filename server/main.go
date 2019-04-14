@@ -89,7 +89,7 @@ func main() {
 			if day != ts.Hour() {
 				day = ts.Hour()
 				// fmt.Fprintf(w, "<h2>%d-%02d-%02d %02d:00</h2>\n", ts.Year(), ts.Month(), ts.Day(), ts.Hour())
-				
+
 				fmt.Fprintf(w, `<h2>%s</h2>`, fmt.Sprintf(tpl0, ts.Year(), int(ts.Month())-1, ts.Day(), ts.Hour(), ts.Minute(), ts.Second()))
 			}
 			_time := fmt.Sprintf(tpl1, ts.Year(), int(ts.Month())-1, ts.Day(), ts.Hour(), ts.Minute(), ts.Second())
@@ -162,8 +162,12 @@ func main() {
 
 	mux.HandleFunc("/date", ba.HandlerFuncCB("r", func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("d")
+		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+		if err != nil {
+			limit = 1
+		}
 
-		jrs := getByDate(date)
+		jrs := getByDate(date, int64(limit))
 
 		json.NewEncoder(w).Encode(jrs)
 	}))

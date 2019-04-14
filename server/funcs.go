@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-func getByDate(date string) []JournalRecord {
+func getByDate(date string, days int64) []JournalRecord {
 	parsedDate, _ := time.Parse("2006-01-02", date)
 
 	_start := parsedDate.UnixNano()
-	_end := parsedDate.UnixNano() + 24*time.Hour.Nanoseconds()
+	_end := parsedDate.UnixNano() /*+ 24*time.Hour.Nanoseconds() */ + (days * 24 * time.Hour.Nanoseconds())
 
 	q := fmt.Sprintf("+ID:>%d +ID:<%d", _start, _end)
 
