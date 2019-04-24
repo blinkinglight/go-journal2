@@ -1,4 +1,4 @@
-# journal2 - command line admin journal
+# go journal2 - command line admin journal
 
 MVP
 
