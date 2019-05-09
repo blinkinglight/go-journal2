@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"html"
 	"log"
 	"net/http"
@@ -13,14 +12,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/boltdb/bolt"
+
 	"github.com/blevesearch/bleve"
-	"gopkg.in/ini.v1"
+	ini "gopkg.in/ini.v1"
 
 	"server/ba"
 )
 
 var (
 	flagConfig = flag.String("config", "/etc/journal2srv.ini", "-config /etc/journal2srv.ini")
+
+	flagAutoPost = flag.String("slack-auto-post-channel", "", "-slack-auto-post-channel [03R3XG0DP]")
 )
 
 var (
@@ -104,6 +107,7 @@ func main() {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		sendToSlack(fmt.Sprintf("%s: %s", name, content))
 		createRecord(-1, name, content)
 		w.Write([]byte("OK"))
 	}))
@@ -166,7 +170,6 @@ func main() {
 		if err != nil {
 			limit = 1
 		}
-
 		jrs := getByDate(date, int64(limit))
 
 		json.NewEncoder(w).Encode(jrs)
@@ -175,6 +178,7 @@ func main() {
 	mux.HandleFunc("/raw", ba.HandlerFuncCB("w", func(w http.ResponseWriter, r *http.Request) {
 		var jr JournalRecord
 		json.NewDecoder(r.Body).Decode(&jr)
+		sendToSlack(fmt.Sprintf("%s: %s", jr.Name, jr.Content))
 		createRecord(jr.ID, jr.Name, jr.Content)
 	}))
 	go startSlackBot()

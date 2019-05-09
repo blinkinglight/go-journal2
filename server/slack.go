@@ -2,15 +2,28 @@ package main
 
 import (
 	"fmt"
-	"github.com/nlopes/slack"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nlopes/slack"
 )
 
 func checkSlackBotEnabled() bool {
 	return os.Getenv("SLACK_TOKEN") == ""
+}
+
+var (
+	autoPostCh = make(chan string)
+)
+
+func sendToSlack(s string) {
+	select {
+	case autoPostCh <- s:
+	default:
+	}
 }
 
 func startSlackBot() {
@@ -23,6 +36,15 @@ func startSlackBot() {
 	auth, err := api.AuthTest()
 	if err != nil {
 		panic(err)
+	}
+
+	if *flagAutoPost != "" {
+		go func() {
+			for msg := range autoPostCh {
+				log.Printf("sending: %v", msg)
+				api.SendMessage(*flagAutoPost, slack.MsgOptionAttachments(slackStringToSlack(msg)))
+			}
+		}()
 	}
 
 	rtm := api.NewRTM()
@@ -54,6 +76,10 @@ func startSlackBot() {
 			}
 		}
 	}
+}
+
+func slackStringToSlack(s string) slack.Attachment {
+	return slack.Attachment{Text: s}
 }
 
 func slackGetLast(_limit string) slack.Attachment {
