@@ -24,6 +24,7 @@ var (
 	flagConfig = flag.String("config", "/etc/journal2srv.ini", "-config /etc/journal2srv.ini")
 
 	flagAutoPost = flag.String("slack-auto-post-channel", "", "-slack-auto-post-channel [03R3XG0DP]")
+	flagWebhook  = flag.String("slack-webhook", "", "-slack-webhook http:/......")
 )
 
 var (

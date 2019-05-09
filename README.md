@@ -27,6 +27,10 @@ jrnl_server - journal server. if SLACK_TOKEN env var is set, starts slack bot.
 ```
 SLACK_TOKEN=xxx-xxxx-xxxx-xxx ./jrnl_server -slack-auto-post-to-channel GWWR99EW
 ```
+or
+```
+./jrnl_server -slack-webhook http://.....
+```
 
 ```
 http://journal2serveraddr:port

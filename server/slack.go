@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -19,10 +22,26 @@ var (
 	autoPostCh = make(chan string)
 )
 
+type slackWebhookMessage struct {
+	Text string `json:"text"`
+}
+
 func sendToSlack(s string) {
 	select {
 	case autoPostCh <- s:
 	default:
+	}
+	if *flagWebhook != "" {
+		postData := slackWebhookMessage{s}
+		b, err := json.Marshal(postData)
+		if err != nil {
+			log.Printf("json marshal error: %v", err)
+		}
+		response, err := http.Post(*flagWebhook, "application/json", bytes.NewReader(b))
+		if err != nil {
+			log.Printf("http post error: %v", err)
+		}
+		response.Body.Close()
 	}
 }
 
