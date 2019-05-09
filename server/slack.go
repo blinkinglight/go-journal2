@@ -41,7 +41,9 @@ func sendToSlack(s string) {
 		if err != nil {
 			log.Printf("http post error: %v", err)
 		}
-		response.Body.Close()
+		if response.Body != nil {
+			response.Body.Close()
+		}
 	}
 }
 
