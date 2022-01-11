@@ -8,4 +8,7 @@ require (
 	gopkg.in/ini.v1 v1.66.2
 )
 
-require golang.org/x/sys v0.0.0-20220111092808-5a964db01320 // indirect
+require (
+	github.com/stretchr/testify v1.7.0 // indirect
+	golang.org/x/sys v0.0.0-20220111092808-5a964db01320 // indirect
+)
